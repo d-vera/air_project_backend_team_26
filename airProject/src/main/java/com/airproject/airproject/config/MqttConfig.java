@@ -32,9 +32,22 @@ public class MqttConfig {
     @Bean
     public IMqttClient mqttClient() throws MqttException {
         String validBrokerUrl = brokerUrl;
-        if (validBrokerUrl == null || validBrokerUrl.startsWith("http://") || validBrokerUrl.startsWith("https://")) {
+        if (validBrokerUrl == null || validBrokerUrl.isBlank()) {
+            logger.warn("MQTT broker URL is empty. Defaulting to tcp://localhost:1883");
+            validBrokerUrl = "tcp://localhost:1883";
+        } else if (validBrokerUrl.startsWith("http://") || validBrokerUrl.startsWith("https://")) {
             logger.warn("Invalid MQTT broker URL scheme '{}'. Defaulting to tcp://localhost:1883", brokerUrl);
             validBrokerUrl = "tcp://localhost:1883";
+        } else if (!validBrokerUrl.contains("://")) {
+            if (validBrokerUrl.contains(":8883")) {
+                validBrokerUrl = "ssl://" + validBrokerUrl;
+            } else {
+                validBrokerUrl = "tcp://" + validBrokerUrl;
+            }
+            logger.info("Added scheme prefix to broker URL: {}", validBrokerUrl);
+        } else if (validBrokerUrl.startsWith("tcp://") && validBrokerUrl.contains(":8883")) {
+            validBrokerUrl = validBrokerUrl.replace("tcp://", "ssl://");
+            logger.info("Port 8883 detected with tcp://. Automatically upgraded scheme to ssl://: {}", validBrokerUrl);
         }
 
         String actualClientId = (clientId != null && !clientId.isBlank())
@@ -45,6 +58,7 @@ public class MqttConfig {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
         options.setAutomaticReconnect(true);
+        options.setConnectionTimeout(15);
 
         if (username != null && !username.isBlank()) {
             options.setUserName(username);
@@ -53,6 +67,7 @@ public class MqttConfig {
             options.setPassword(password.toCharArray());
         }
 
+        logger.info("Connecting to MQTT broker at {}", validBrokerUrl);
         client.connect(options);
         return client;
     }

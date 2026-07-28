@@ -5,12 +5,14 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "air_quality_readings")
+@IdClass(AirQualityReadingId.class)
 public class AirQualityReading {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Id
     @Column(name = "time", nullable = false)
     private Instant time;
 
