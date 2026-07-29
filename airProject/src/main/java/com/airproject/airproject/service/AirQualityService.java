@@ -24,8 +24,17 @@ public class AirQualityService {
     @Transactional
     public AirQualityReading processAndSave(AirQualityMessage message, String topic) {
         String deviceId = message.dispositivo() != null ? message.dispositivo().id() : "unknown";
+        String deviceName = message.dispositivo() != null ? message.dispositivo().nombre() : null;
         String firmware = message.dispositivo() != null ? message.dispositivo().firmware() : null;
         Integer sequence = message.dispositivo() != null ? message.dispositivo().secuencia() : null;
+        Long timestamp = message.dispositivo() != null ? message.dispositivo().timestamp() : null;
+
+        Instant readingTime;
+        if (timestamp != null && timestamp > 0) {
+            readingTime = timestamp > 1_000_000_000_000L ? Instant.ofEpochMilli(timestamp) : Instant.ofEpochSecond(timestamp);
+        } else {
+            readingTime = Instant.now();
+        }
 
         Double temperature = message.entorno() != null ? message.entorno().temperatura() : null;
         Double humidity = message.entorno() != null ? message.entorno().humedad() : null;
@@ -36,8 +45,9 @@ public class AirQualityService {
         Double pm10 = message.aire() != null ? message.aire().pm10() : null;
 
         AirQualityReading reading = new AirQualityReading(
-                Instant.now(),
+                readingTime,
                 deviceId,
+                deviceName,
                 firmware,
                 sequence,
                 topic,

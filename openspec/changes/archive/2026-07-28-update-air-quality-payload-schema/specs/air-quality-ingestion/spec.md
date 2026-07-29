@@ -1,14 +1,4 @@
-# air-quality-ingestion Specification
-
-## Purpose
-TBD - created by archiving change emqx-mqtt-integration. Update Purpose after archive.
-## Requirements
-### Requirement: System subscribes to MQTT topic on startup
-The system SHALL subscribe to the configured MQTT topic (`calidad_aire/nodo1` by default) with the configured QoS level immediately after the MQTT client connects.
-
-#### Scenario: Successful subscription on startup
-- **WHEN** the application starts and the MQTT client connects successfully
-- **THEN** the system subscribes to the topic defined by the `MQTT_TOPIC` environment variable with QoS defined by `MQTT_QOS`
+## MODIFIED Requirements
 
 ### Requirement: System deserializes incoming MQTT JSON payloads
 The system SHALL deserialize incoming MQTT messages from the subscribed topic into a structured DTO matching the following JSON format:
@@ -53,11 +43,3 @@ The system SHALL map each successfully deserialized `AirQualityMessage` to an `A
 #### Scenario: Message successfully persisted
 - **WHEN** a valid air quality message is received and deserialized
 - **THEN** the system persists an `AirQualityReading` entity with `time` derived from `Timestamp` (or current server timestamp if missing), `deviceName` set to `dispositivo.nombre`, and all sensor fields mapped from the message
-
-### Requirement: System logs each successfully ingested message
-The system SHALL log a confirmation message at INFO level after each successful persistence, including the device ID and topic.
-
-#### Scenario: Ingestion logged
-- **WHEN** an air quality reading is successfully saved to the database
-- **THEN** the system logs an INFO message containing the device ID and topic name
-
