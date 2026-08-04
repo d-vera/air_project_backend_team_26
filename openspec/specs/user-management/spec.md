@@ -1,11 +1,12 @@
-## ADDED Requirements
-
+## Purpose
+Manages user account profiles, authentication state, and administrative user operations.
+## Requirements
 ### Requirement: View own profile
-The system SHALL allow authenticated users (any role) to retrieve their own profile via `GET /api/users/me`. The response SHALL include id, email, firstName, lastName, role, active status, createdAt, and updatedAt. The password SHALL NOT be included in the response.
+The system SHALL allow authenticated users (any role) to retrieve their own profile via `GET /api/users/me`. The response SHALL include id, email, firstName, lastName, role, active status, preferredTheme, preferredLanguage, createdAt, and updatedAt. The password SHALL NOT be included in the response.
 
 #### Scenario: Authenticated user views own profile
 - **WHEN** an authenticated user sends a GET request to `/api/users/me`
-- **THEN** the system SHALL return HTTP 200 with the user's profile data (excluding password)
+- **THEN** the system SHALL return HTTP 200 with the user's profile data including `preferredTheme` and `preferredLanguage` (excluding password)
 
 ### Requirement: Update own profile
 The system SHALL allow authenticated users (any role) to update their own profile via `PUT /api/users/me`. Users SHALL be able to update their firstName, lastName, and/or password. The email and role SHALL NOT be modifiable by the user.
@@ -61,3 +62,4 @@ The system SHALL allow users with role `ADMIN` to soft-delete a user via `DELETE
 #### Scenario: Admin deletes already-inactive user
 - **WHEN** an admin sends a DELETE request to `/api/users/{id}` for a user that is already inactive
 - **THEN** the system SHALL return HTTP 404 Not Found with message "User not found"
+
