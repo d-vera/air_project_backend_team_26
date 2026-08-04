@@ -44,6 +44,14 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean active = true;
 
+    @Column(name = "preferred_theme", nullable = false, length = 10)
+    @Builder.Default
+    private String preferredTheme = "DARK";
+
+    @Column(name = "preferred_language", nullable = false, length = 5)
+    @Builder.Default
+    private String preferredLanguage = "es";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
