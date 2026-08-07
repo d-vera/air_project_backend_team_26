@@ -21,8 +21,6 @@ public class UserResponse {
     private String lastName;
     private Role role;
     private boolean active;
-    private String preferredTheme;
-    private String preferredLanguage;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -34,8 +32,6 @@ public class UserResponse {
                 .lastName(user.getLastName())
                 .role(user.getRole())
                 .active(user.isActive())
-                .preferredTheme(user.getPreferredTheme())
-                .preferredLanguage(user.getPreferredLanguage())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

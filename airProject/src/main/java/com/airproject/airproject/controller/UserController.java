@@ -1,7 +1,6 @@
 package com.airproject.airproject.controller;
 
 import com.airproject.airproject.dto.AssignRoleRequest;
-import com.airproject.airproject.dto.UpdatePreferencesRequest;
 import com.airproject.airproject.dto.UpdateUserRequest;
 import com.airproject.airproject.dto.UserResponse;
 import com.airproject.airproject.service.UserService;
@@ -54,18 +53,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/me/preferences")
-    @Operation(summary = "Update own preferences", description = "Updates UI preferences (theme and/or language) of the currently authenticated user.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Preferences updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid preference value"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
-    public ResponseEntity<UserResponse> updateOwnPreferences(@AuthenticationPrincipal UserDetails userDetails,
-                                                             @Valid @RequestBody UpdatePreferencesRequest request) {
-        UserResponse response = userService.updateUserPreferences(userDetails.getUsername(), request);
-        return ResponseEntity.ok(response);
-    }
+
 
     @GetMapping
     @Operation(summary = "List all active users", description = "Admin endpoint to retrieve all active users in the system.")

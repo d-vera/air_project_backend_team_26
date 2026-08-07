@@ -1,6 +1,5 @@
 package com.airproject.airproject.controller;
 
-import com.airproject.airproject.dto.UpdatePreferencesRequest;
 import com.airproject.airproject.dto.UserResponse;
 import com.airproject.airproject.model.Role;
 import com.airproject.airproject.service.UserService;
@@ -18,8 +17,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +36,7 @@ class UserControllerTest {
     }
 
     @Test
-    void getOwnProfile_ReturnsPreferences() {
+    void getOwnProfile_ReturnsUserProfile() {
         UserResponse response = UserResponse.builder()
                 .id(1L)
                 .email("user@example.com")
@@ -47,8 +44,6 @@ class UserControllerTest {
                 .lastName("Doe")
                 .role(Role.REGISTERED_USER)
                 .active(true)
-                .preferredTheme("DARK")
-                .preferredLanguage("es")
                 .build();
 
         when(userService.getCurrentUser("user@example.com")).thenReturn(response);
@@ -57,31 +52,7 @@ class UserControllerTest {
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
-        assertEquals("DARK", result.getBody().getPreferredTheme());
-        assertEquals("es", result.getBody().getPreferredLanguage());
-    }
-
-    @Test
-    void updateOwnPreferences_ReturnsUpdatedProfile() {
-        UpdatePreferencesRequest request = UpdatePreferencesRequest.builder()
-                .preferredTheme("LIGHT")
-                .preferredLanguage("en")
-                .build();
-
-        UserResponse response = UserResponse.builder()
-                .id(1L)
-                .email("user@example.com")
-                .preferredTheme("LIGHT")
-                .preferredLanguage("en")
-                .build();
-
-        when(userService.updateUserPreferences(eq("user@example.com"), any(UpdatePreferencesRequest.class))).thenReturn(response);
-
-        ResponseEntity<UserResponse> result = userController.updateOwnPreferences(userDetails, request);
-
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals("LIGHT", result.getBody().getPreferredTheme());
-        assertEquals("en", result.getBody().getPreferredLanguage());
+        assertEquals("user@example.com", result.getBody().getEmail());
+        assertEquals("John", result.getBody().getFirstName());
     }
 }

@@ -1,7 +1,6 @@
 package com.airproject.airproject.service;
 
 import com.airproject.airproject.dto.AssignRoleRequest;
-import com.airproject.airproject.dto.UpdatePreferencesRequest;
 import com.airproject.airproject.dto.UpdateUserRequest;
 import com.airproject.airproject.dto.UserResponse;
 import com.airproject.airproject.exception.UserNotFoundException;
@@ -49,20 +48,7 @@ public class UserService {
         return UserResponse.fromEntity(updatedUser);
     }
 
-    public UserResponse updateUserPreferences(String email, UpdatePreferencesRequest request) {
-        User user = userRepository.findByEmailAndActiveTrue(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (StringUtils.hasText(request.getPreferredTheme())) {
-            user.setPreferredTheme(request.getPreferredTheme().toUpperCase());
-        }
-        if (StringUtils.hasText(request.getPreferredLanguage())) {
-            user.setPreferredLanguage(request.getPreferredLanguage().toLowerCase());
-        }
-
-        User updatedUser = userRepository.save(user);
-        return UserResponse.fromEntity(updatedUser);
-    }
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAllByActiveTrue().stream()
