@@ -23,7 +23,7 @@ public class UserPreferenceService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PreferenceResponse getPreferencesByUserEmail(String email) {
         User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
