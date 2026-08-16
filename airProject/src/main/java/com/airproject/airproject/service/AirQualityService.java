@@ -22,9 +22,11 @@ public class AirQualityService {
     private static final Logger logger = LoggerFactory.getLogger(AirQualityService.class);
 
     private final AirQualityReadingRepository repository;
+    private final SensorService sensorService;
 
-    public AirQualityService(AirQualityReadingRepository repository) {
+    public AirQualityService(AirQualityReadingRepository repository, SensorService sensorService) {
         this.repository = repository;
+        this.sensorService = sensorService;
     }
 
     @Transactional
@@ -67,6 +69,13 @@ public class AirQualityService {
 
         AirQualityReading savedReading = repository.save(reading);
         logger.info("Successfully ingested air quality reading from device: {} on topic: {}", deviceId, topic);
+
+        try {
+            sensorService.updateSensorStatusFromReading(deviceId, firmware, readingTime);
+        } catch (Exception e) {
+            logger.warn("Failed to update sensor status for device {}: {}", deviceId, e.getMessage());
+        }
+
         return savedReading;
     }
 

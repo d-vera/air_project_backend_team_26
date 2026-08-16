@@ -46,6 +46,8 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/air-quality/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/sensors", "/api/sensors/**").permitAll()
+                        .requestMatchers("/api/sensors/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/me", "/api/users/me/**").authenticated()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

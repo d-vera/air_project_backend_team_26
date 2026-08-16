@@ -33,6 +33,9 @@ class AirQualityServiceTest {
     @Mock
     private AirQualityReadingRepository repository;
 
+    @Mock
+    private SensorService sensorService;
+
     @InjectMocks
     private AirQualityService airQualityService;
 
@@ -74,6 +77,8 @@ class AirQualityServiceTest {
         AirQualityReading saved = captor.getValue();
         assertEquals("Node1", saved.getDeviceName());
         assertEquals(Instant.ofEpochSecond(1785274877L), saved.getTime());
+
+        verify(sensorService).updateSensorStatusFromReading("ACEA5AC8E720", "1.0.2", Instant.ofEpochSecond(1785274877L));
     }
 
     @Test
