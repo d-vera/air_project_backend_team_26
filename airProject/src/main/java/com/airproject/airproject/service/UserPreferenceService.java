@@ -48,9 +48,6 @@ public class UserPreferenceService {
         if (request.getTheme() != null) {
             preference.setTheme(request.getTheme());
         }
-        if (request.getActive() != null) {
-            preference.setActive(request.getActive());
-        }
 
         UserPreference updated = preferenceRepository.save(preference);
         return PreferenceResponse.fromEntity(updated);
@@ -62,7 +59,6 @@ public class UserPreferenceService {
                 .user(user)
                 .language(Language.ES)
                 .theme(Theme.SYSTEM)
-                .active(true)
                 .build();
         return preferenceRepository.save(preference);
     }

@@ -32,9 +32,6 @@ public class UserPreference {
     @Builder.Default
     private Theme theme = Theme.SYSTEM;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean active = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

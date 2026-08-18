@@ -36,7 +36,7 @@ public class PreferenceController {
     }
 
     @PatchMapping("/me")
-    @Operation(summary = "Update own preferences", description = "Updates UI preferences (language, theme, active status) of the currently authenticated user.")
+    @Operation(summary = "Update own preferences", description = "Updates UI preferences (language, theme) of the currently authenticated user.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Preferences updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid field values"),

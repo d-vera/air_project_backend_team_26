@@ -52,7 +52,6 @@ class UserPreferenceServiceTest {
                 .user(testUser)
                 .language(Language.ES)
                 .theme(Theme.SYSTEM)
-                .active(true)
                 .build();
     }
 

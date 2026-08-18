@@ -45,7 +45,6 @@ class PreferenceControllerTest {
                 .id(1L)
                 .language(Language.ES)
                 .theme(Theme.DARK)
-                .active(true)
                 .build();
 
         when(preferenceService.getPreferencesByUserEmail("user@example.com")).thenReturn(response);
@@ -63,14 +62,12 @@ class PreferenceControllerTest {
         UpdatePreferenceRequest request = UpdatePreferenceRequest.builder()
                 .theme(Theme.SYSTEM)
                 .language(Language.EN)
-                .active(true)
                 .build();
 
         PreferenceResponse response = PreferenceResponse.builder()
                 .id(1L)
                 .language(Language.EN)
                 .theme(Theme.SYSTEM)
-                .active(true)
                 .build();
 
         when(preferenceService.updatePreferences(eq("user@example.com"), any(UpdatePreferenceRequest.class))).thenReturn(response);

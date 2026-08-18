@@ -54,7 +54,6 @@ public class AuthService {
                 .user(savedUser)
                 .language(Language.ES)
                 .theme(Theme.SYSTEM)
-                .active(true)
                 .build();
         savedUser.setPreference(preference);
         userRepository.save(savedUser);

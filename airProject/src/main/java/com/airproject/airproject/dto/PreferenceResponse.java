@@ -25,9 +25,6 @@ public class PreferenceResponse {
     @Schema(description = "Preferred UI theme mode (DARK, LIGHT, or SYSTEM)", example = "SYSTEM", defaultValue = "SYSTEM")
     private Theme theme;
 
-    @Schema(description = "Active preference status flag", example = "true")
-    private Boolean active;
-
     public static PreferenceResponse fromEntity(UserPreference preference) {
         if (preference == null) {
             return null;
@@ -36,7 +33,6 @@ public class PreferenceResponse {
                 .id(preference.getId())
                 .language(preference.getLanguage())
                 .theme(preference.getTheme())
-                .active(preference.getActive())
                 .build();
     }
 }
