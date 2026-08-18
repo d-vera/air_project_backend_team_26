@@ -50,9 +50,15 @@ The system SHALL map each successfully deserialized `AirQualityMessage` to an `A
 - `pm2_5`: from `aire.pm2_5`
 - `pm10`: from `aire.pm10`
 
-#### Scenario: Message successfully persisted
-- **WHEN** a valid air quality message is received and deserialized
-- **THEN** the system persists an `AirQualityReading` entity with `time` derived from `Timestamp` (or current server timestamp if missing), `deviceName` set to `dispositivo.nombre`, and all sensor fields mapped from the message
+Additionally, upon processing the message, the system SHALL check if a `Sensor` entity exists with `uidSensor` matching `dispositivo.id`. If found, the system SHALL update the sensor's `lastSeen` timestamp to the reading time (or current time), update `firmwareVersion` if provided, and set `sensorStatus` to `ONLINE`.
+
+#### Scenario: Message successfully persisted and sensor status updated
+- **WHEN** a valid air quality message is received and deserialized for a registered sensor
+- **THEN** the system persists an `AirQualityReading` entity and updates the corresponding `Sensor`'s `lastSeen` timestamp, `firmwareVersion`, and sets `sensorStatus` to `ONLINE`
+
+#### Scenario: Message from unregistered sensor
+- **WHEN** a valid air quality message is received for a `dispositivo.id` not present in `sensors`
+- **THEN** the system persists the `AirQualityReading` normally and logs a warning that the sensor is unregistered
 
 ### Requirement: System logs each successfully ingested message
 The system SHALL log a confirmation message at INFO level after each successful persistence, including the device ID and topic.
