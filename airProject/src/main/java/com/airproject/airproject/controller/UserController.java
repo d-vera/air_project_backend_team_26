@@ -56,7 +56,7 @@ public class UserController {
 
 
     @GetMapping
-    @Operation(summary = "List all active users", description = "Admin endpoint to retrieve all active users in the system.")
+    @Operation(summary = "List all users", description = "Admin endpoint to retrieve all users in the system, including active and inactive accounts.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of users retrieved successfully"),
             @ApiResponse(responseCode = "403", description = "Forbidden — Admin access required")
@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get user by ID", description = "Admin endpoint to retrieve details of a specific active user.")
+    @Operation(summary = "Get user by ID", description = "Admin endpoint to retrieve details of a specific user, including inactive accounts.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
             @ApiResponse(responseCode = "403", description = "Forbidden — Admin access required"),

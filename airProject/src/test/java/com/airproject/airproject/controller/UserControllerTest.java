@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -54,5 +55,57 @@ class UserControllerTest {
         assertNotNull(result.getBody());
         assertEquals("user@example.com", result.getBody().getEmail());
         assertEquals("John", result.getBody().getFirstName());
+    }
+
+    @Test
+    void getAllUsers_ReturnsActiveAndInactiveUsers() {
+        UserResponse activeUser = UserResponse.builder()
+                .id(1L)
+                .email("active@example.com")
+                .firstName("Active")
+                .lastName("User")
+                .role(Role.REGISTERED_USER)
+                .active(true)
+                .build();
+
+        UserResponse inactiveUser = UserResponse.builder()
+                .id(2L)
+                .email("inactive@example.com")
+                .firstName("Inactive")
+                .lastName("User")
+                .role(Role.REGISTERED_USER)
+                .active(false)
+                .build();
+
+        when(userService.getAllUsers()).thenReturn(List.of(activeUser, inactiveUser));
+
+        ResponseEntity<List<UserResponse>> result = userController.getAllUsers();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals(2, result.getBody().size());
+        assertTrue(result.getBody().get(0).isActive());
+        assertFalse(result.getBody().get(1).isActive());
+    }
+
+    @Test
+    void getUserById_ReturnsInactiveUser() {
+        UserResponse inactiveUser = UserResponse.builder()
+                .id(2L)
+                .email("inactive@example.com")
+                .firstName("Inactive")
+                .lastName("User")
+                .role(Role.REGISTERED_USER)
+                .active(false)
+                .build();
+
+        when(userService.getUserById(2L)).thenReturn(inactiveUser);
+
+        ResponseEntity<UserResponse> result = userController.getUserById(2L);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertFalse(result.getBody().isActive());
+        assertEquals("inactive@example.com", result.getBody().getEmail());
     }
 }
