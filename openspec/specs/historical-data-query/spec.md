@@ -24,7 +24,17 @@ The system SHALL expose a REST endpoint `GET /api/air-quality/historical` that a
 - **THEN** the system returns air quality data averaged in 24-hour buckets for the past 365 days, grouped by device, ordered by time ascending
 
 ### Requirement: Historical air quality data is queryable via REST with custom date ranges
-The system SHALL accept optional `from` and `to` query parameters (ISO 8601 format) on the `GET /api/air-quality/historical` endpoint to define a custom date range. The aggregation interval SHALL be automatically selected based on the range duration.
+The system SHALL accept optional `from` and `to` query parameters on the `GET /api/air-quality/historical` endpoint to define a custom date range. The aggregation interval SHALL be automatically selected based on the range duration. The `from` and `to` parameters SHALL accept two formats:
+- **ISO-8601 Instant**: e.g., `2026-07-31T00:00:00Z`
+- **Date-only (YYYY-MM-DD)**: e.g., `2026-07-31`. When date-only is used, `from` resolves to start-of-day (`00:00:00Z`) and `to` resolves to end-of-day (`23:59:59Z`) in UTC.
+
+#### Scenario: Custom range with ISO-8601 Instant format
+- **WHEN** an authenticated client sends `GET /api/air-quality/historical?from=2026-07-31T00:00:00Z&to=2026-07-31T06:00:00Z`
+- **THEN** the system returns air quality data averaged in 10-minute buckets (range ≤ 1 day) for the specified period
+
+#### Scenario: Custom range with date-only format
+- **WHEN** an authenticated client sends `GET /api/air-quality/historical?from=2026-07-28&to=2026-07-31`
+- **THEN** the system parses `from` as `2026-07-28T00:00:00Z` and `to` as `2026-07-31T23:59:59Z`, and returns air quality data averaged in 1-hour buckets (range ≤ 1 week) for the resolved period
 
 #### Scenario: Custom range of 6 hours
 - **WHEN** an authenticated client sends `GET /api/air-quality/historical?from=2026-07-31T00:00:00Z&to=2026-07-31T06:00:00Z`
@@ -49,6 +59,10 @@ The system SHALL accept optional `from` and `to` query parameters (ISO 8601 form
 #### Scenario: Invalid custom range where from is after to
 - **WHEN** a client sends `GET /api/air-quality/historical?from=2026-08-01T00:00:00Z&to=2026-07-01T00:00:00Z`
 - **THEN** the system returns HTTP 400 Bad Request with an error message
+
+#### Scenario: Invalid date format
+- **WHEN** a client sends `GET /api/air-quality/historical?from=not-a-date&to=2026-07-31`
+- **THEN** the system returns HTTP 400 Bad Request with a message indicating the expected formats (ISO-8601 UTC or date-only YYYY-MM-DD)
 
 #### Scenario: Both range and custom dates provided
 - **WHEN** a client sends `GET /api/air-quality/historical?range=LAST_DAY&from=2026-07-01T00:00:00Z&to=2026-07-31T00:00:00Z`
