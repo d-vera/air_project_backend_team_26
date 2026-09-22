@@ -132,14 +132,32 @@ public class SensorService {
         sensorRepository.findByUidSensor(uidSensor).ifPresentOrElse(
                 sensor -> {
                     sensor.setLastSeen(readingTime != null ? readingTime : Instant.now());
-                    sensor.setSensorStatus(SensorStatus.ONLINE);
+                    if (sensor.getSensorStatus() != SensorStatus.MAINTENANCE) {
+                        sensor.setSensorStatus(SensorStatus.ONLINE);
+                    }
                     if (StringUtils.hasText(firmwareVersion)) {
                         sensor.setFirmwareVersion(firmwareVersion);
                     }
                     sensorRepository.save(sensor);
-                    logger.debug("Updated sensor status to ONLINE for UID: {}", uidSensor);
+                    if (sensor.getSensorStatus() == SensorStatus.MAINTENANCE) {
+                        logger.debug("Sensor UID: {} is in MAINTENANCE — updated lastSeen but status unchanged", uidSensor);
+                    } else {
+                        logger.debug("Updated sensor status to ONLINE for UID: {}", uidSensor);
+                    }
                 },
                 () -> logger.warn("Received reading from unregistered sensor UID: {}", uidSensor)
         );
+    }
+
+    @Transactional
+    public SensorResponse reactivateSensor(Integer id) {
+        Sensor sensor = sensorRepository.findById(id)
+                .orElseThrow(() -> new SensorNotFoundException("Sensor not found with id: " + id));
+
+        sensor.setActive(true);
+        sensor.setSensorStatus(SensorStatus.OFFLINE);
+        Sensor reactivated = sensorRepository.save(sensor);
+        logger.info("Reactivated sensor: id={}, uid={}", reactivated.getId(), reactivated.getUidSensor());
+        return SensorResponse.fromEntity(reactivated);
     }
 }

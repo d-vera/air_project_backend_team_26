@@ -120,4 +120,99 @@ class SensorControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(sensorService).deleteSensor(1);
     }
+
+    @Test
+    void updateSensor_shouldSetStatusToMaintenance() {
+        UpdateSensorRequest request = UpdateSensorRequest.builder()
+                .sensorStatus(SensorStatus.MAINTENANCE)
+                .build();
+
+        SensorResponse maintenanceResponse = SensorResponse.builder()
+                .id(1)
+                .uidSensor("ESP32_001")
+                .sensorStatus(SensorStatus.MAINTENANCE)
+                .active(true)
+                .build();
+
+        when(sensorService.updateSensor(eq(1), eq(request))).thenReturn(maintenanceResponse);
+
+        ResponseEntity<SensorResponse> response = sensorController.updateSensor(1, request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(SensorStatus.MAINTENANCE, response.getBody().getSensorStatus());
+    }
+
+    @Test
+    void updateSensor_shouldSetStatusToOffline() {
+        UpdateSensorRequest request = UpdateSensorRequest.builder()
+                .sensorStatus(SensorStatus.OFFLINE)
+                .build();
+
+        SensorResponse offlineResponse = SensorResponse.builder()
+                .id(1)
+                .uidSensor("ESP32_001")
+                .sensorStatus(SensorStatus.OFFLINE)
+                .active(true)
+                .build();
+
+        when(sensorService.updateSensor(eq(1), eq(request))).thenReturn(offlineResponse);
+
+        ResponseEntity<SensorResponse> response = sensorController.updateSensor(1, request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(SensorStatus.OFFLINE, response.getBody().getSensorStatus());
+    }
+
+    @Test
+    void updateSensor_shouldTransitionFromMaintenanceToOnline() {
+        UpdateSensorRequest request = UpdateSensorRequest.builder()
+                .sensorStatus(SensorStatus.ONLINE)
+                .build();
+
+        SensorResponse onlineResponse = SensorResponse.builder()
+                .id(1)
+                .uidSensor("ESP32_001")
+                .sensorStatus(SensorStatus.ONLINE)
+                .active(true)
+                .build();
+
+        when(sensorService.updateSensor(eq(1), eq(request))).thenReturn(onlineResponse);
+
+        ResponseEntity<SensorResponse> response = sensorController.updateSensor(1, request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(SensorStatus.ONLINE, response.getBody().getSensorStatus());
+    }
+
+    @Test
+    void reactivateSensor_shouldReturnReactivatedSensor() {
+        SensorResponse reactivatedResponse = SensorResponse.builder()
+                .id(1)
+                .uidSensor("ESP32_001")
+                .name("Sensor Patio Central")
+                .sensorStatus(SensorStatus.OFFLINE)
+                .active(true)
+                .build();
+
+        when(sensorService.reactivateSensor(1)).thenReturn(reactivatedResponse);
+
+        ResponseEntity<SensorResponse> response = sensorController.reactivateSensor(1);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(true, response.getBody().getActive());
+        assertEquals(SensorStatus.OFFLINE, response.getBody().getSensorStatus());
+    }
+
+    @Test
+    void reactivateSensor_whenNotFound_shouldThrow() {
+        when(sensorService.reactivateSensor(99))
+                .thenThrow(new com.airproject.airproject.exception.SensorNotFoundException("Sensor not found with id: 99"));
+
+        assertThrows(com.airproject.airproject.exception.SensorNotFoundException.class,
+                () -> sensorController.reactivateSensor(99));
+    }
 }

@@ -203,4 +203,63 @@ class SensorServiceTest {
         assertEquals(readingTime, sampleSensor.getLastSeen());
         verify(sensorRepository).save(sampleSensor);
     }
+
+    @Test
+    void updateSensorStatusFromReading_whenSensorInMaintenance_shouldNotChangeStatus() {
+        sampleSensor.setSensorStatus(SensorStatus.MAINTENANCE);
+        when(sensorRepository.findByUidSensor("ESP32_001")).thenReturn(Optional.of(sampleSensor));
+
+        Instant readingTime = Instant.now();
+        sensorService.updateSensorStatusFromReading("ESP32_001", "1.0.3", readingTime);
+
+        assertEquals(SensorStatus.MAINTENANCE, sampleSensor.getSensorStatus());
+        assertEquals(readingTime, sampleSensor.getLastSeen());
+        assertEquals("1.0.3", sampleSensor.getFirmwareVersion());
+        verify(sensorRepository).save(sampleSensor);
+    }
+
+    @Test
+    void updateSensorStatusFromReading_whenSensorOffline_shouldSetOnline() {
+        sampleSensor.setSensorStatus(SensorStatus.OFFLINE);
+        when(sensorRepository.findByUidSensor("ESP32_001")).thenReturn(Optional.of(sampleSensor));
+
+        Instant readingTime = Instant.now();
+        sensorService.updateSensorStatusFromReading("ESP32_001", "1.0.3", readingTime);
+
+        assertEquals(SensorStatus.ONLINE, sampleSensor.getSensorStatus());
+        assertEquals(readingTime, sampleSensor.getLastSeen());
+        verify(sensorRepository).save(sampleSensor);
+    }
+
+    @Test
+    void reactivateSensor_whenInactive_shouldSetActiveAndOffline() {
+        sampleSensor.setActive(false);
+        sampleSensor.setSensorStatus(SensorStatus.OFFLINE);
+        when(sensorRepository.findById(1)).thenReturn(Optional.of(sampleSensor));
+        when(sensorRepository.save(any(Sensor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SensorResponse response = sensorService.reactivateSensor(1);
+
+        assertTrue(sampleSensor.getActive());
+        assertEquals(SensorStatus.OFFLINE, sampleSensor.getSensorStatus());
+        assertNotNull(response);
+    }
+
+    @Test
+    void reactivateSensor_whenAlreadyActive_shouldReturnSensor() {
+        when(sensorRepository.findById(1)).thenReturn(Optional.of(sampleSensor));
+        when(sensorRepository.save(any(Sensor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SensorResponse response = sensorService.reactivateSensor(1);
+
+        assertTrue(sampleSensor.getActive());
+        assertNotNull(response);
+    }
+
+    @Test
+    void reactivateSensor_whenNotFound_shouldThrowException() {
+        when(sensorRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(SensorNotFoundException.class, () -> sensorService.reactivateSensor(99));
+    }
 }

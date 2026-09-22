@@ -91,4 +91,16 @@ public class SensorController {
         sensorService.deleteSensor(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/reactivate")
+    @Operation(summary = "Reactivate sensor", description = "Admin endpoint to reactivate a soft-deleted sensor. Sets active to true and status to OFFLINE.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Sensor reactivated successfully"),
+            @ApiResponse(responseCode = "403", description = "Forbidden — Admin access required"),
+            @ApiResponse(responseCode = "404", description = "Sensor not found")
+    })
+    public ResponseEntity<SensorResponse> reactivateSensor(@PathVariable Integer id) {
+        SensorResponse reactivated = sensorService.reactivateSensor(id);
+        return ResponseEntity.ok(reactivated);
+    }
 }
