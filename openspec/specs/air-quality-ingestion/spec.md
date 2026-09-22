@@ -50,11 +50,15 @@ The system SHALL map each successfully deserialized `AirQualityMessage` to an `A
 - `pm2_5`: from `aire.pm2_5`
 - `pm10`: from `aire.pm10`
 
-Additionally, upon processing the message, the system SHALL check if a `Sensor` entity exists with `uidSensor` matching `dispositivo.id`. If found, the system SHALL update the sensor's `lastSeen` timestamp to the reading time (or current time), update `firmwareVersion` if provided, and set `sensorStatus` to `ONLINE`.
+Additionally, upon processing the message, the system SHALL check if a `Sensor` entity exists with `uidSensor` matching `dispositivo.id`. If found, the system SHALL update the sensor's `lastSeen` timestamp to the reading time (or current time) and update `firmwareVersion` if provided. When updating sensor status from a reading, the system SHALL check if the sensor is currently in `MAINTENANCE` mode. If the sensor is in `MAINTENANCE`, the system SHALL update `lastSeen` but SHALL NOT change the `sensorStatus` — it SHALL remain as `MAINTENANCE`. If the sensor is not in `MAINTENANCE`, the system SHALL set `sensorStatus` to `ONLINE`.
 
 #### Scenario: Message successfully persisted and sensor status updated
-- **WHEN** a valid air quality message is received and deserialized for a registered sensor
+- **WHEN** a valid air quality message is received and deserialized for a registered sensor with `sensorStatus` of `ONLINE` or `OFFLINE`
 - **THEN** the system persists an `AirQualityReading` entity and updates the corresponding `Sensor`'s `lastSeen` timestamp, `firmwareVersion`, and sets `sensorStatus` to `ONLINE`
+
+#### Scenario: Message persisted for sensor in maintenance
+- **WHEN** a valid air quality message is received for a registered sensor with `sensorStatus = MAINTENANCE`
+- **THEN** the system persists the `AirQualityReading` entity, updates `lastSeen`, but SHALL NOT change the `sensorStatus` (it remains `MAINTENANCE`)
 
 #### Scenario: Message from unregistered sensor
 - **WHEN** a valid air quality message is received for a `dispositivo.id` not present in `sensors`
