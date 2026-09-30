@@ -56,15 +56,35 @@ class SensorControllerTest {
     }
 
     @Test
-    void getAllSensors_shouldReturnList() {
-        when(sensorService.getAllActiveSensors()).thenReturn(List.of(sampleResponse));
+    void getAllSensors_withIncludeInactiveFalse_shouldReturnActiveSensors() {
+        when(sensorService.getAllSensors(false)).thenReturn(List.of(sampleResponse));
 
-        ResponseEntity<List<SensorResponse>> response = sensorController.getAllSensors();
+        ResponseEntity<List<SensorResponse>> response = sensorController.getAllSensors(false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals("ESP32_001", response.getBody().get(0).getUidSensor());
+        verify(sensorService).getAllSensors(false);
+    }
+
+    @Test
+    void getAllSensors_withIncludeInactiveTrue_shouldReturnAllSensors() {
+        SensorResponse inactiveResponse = SensorResponse.builder()
+                .id(2)
+                .uidSensor("ESP32_002")
+                .name("Sensor Inactive")
+                .active(false)
+                .build();
+
+        when(sensorService.getAllSensors(true)).thenReturn(List.of(sampleResponse, inactiveResponse));
+
+        ResponseEntity<List<SensorResponse>> response = sensorController.getAllSensors(true);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        verify(sensorService).getAllSensors(true);
     }
 
     @Test

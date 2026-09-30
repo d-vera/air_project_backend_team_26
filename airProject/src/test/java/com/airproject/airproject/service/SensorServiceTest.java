@@ -84,6 +84,42 @@ class SensorServiceTest {
     }
 
     @Test
+    void getAllSensors_whenIncludeInactiveFalse_shouldReturnActiveSensorsOnly() {
+        when(sensorRepository.findByActiveTrue()).thenReturn(List.of(sampleSensor));
+
+        List<SensorResponse> result = sensorService.getAllSensors(false);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("ESP32_001", result.get(0).getUidSensor());
+        verify(sensorRepository).findByActiveTrue();
+        verify(sensorRepository, never()).findAll();
+    }
+
+    @Test
+    void getAllSensors_whenIncludeInactiveTrue_shouldReturnAllSensors() {
+        Sensor inactiveSensor = Sensor.builder()
+                .id(2)
+                .uidSensor("ESP32_002")
+                .name("Sensor Inactive")
+                .sensorType("ESP32_AIR")
+                .latitude(-12.05)
+                .longitude(-77.05)
+                .sensorStatus(SensorStatus.OFFLINE)
+                .active(false)
+                .build();
+
+        when(sensorRepository.findAll()).thenReturn(List.of(sampleSensor, inactiveSensor));
+
+        List<SensorResponse> result = sensorService.getAllSensors(true);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(sensorRepository).findAll();
+        verify(sensorRepository, never()).findByActiveTrue();
+    }
+
+    @Test
     void getSensorById_whenSensorExists_shouldReturnSensor() {
         when(sensorRepository.findByIdAndActiveTrue(1)).thenReturn(Optional.of(sampleSensor));
 

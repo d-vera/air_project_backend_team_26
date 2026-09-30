@@ -5,6 +5,7 @@ import com.airproject.airproject.dto.SensorResponse;
 import com.airproject.airproject.dto.UpdateSensorRequest;
 import com.airproject.airproject.service.SensorService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,12 +30,17 @@ public class SensorController {
     }
 
     @GetMapping
-    @Operation(summary = "List all active sensors", description = "Retrieves all active sensors with coordinates and status.")
+    @Operation(
+            summary = "List sensors",
+            description = "Retrieves sensors with coordinates and status. By default returns only active sensors, or all sensors if includeInactive is true."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Sensors retrieved successfully")
     })
-    public ResponseEntity<List<SensorResponse>> getAllSensors() {
-        List<SensorResponse> sensors = sensorService.getAllActiveSensors();
+    public ResponseEntity<List<SensorResponse>> getAllSensors(
+            @Parameter(description = "Whether to include inactive (soft-deleted) sensors")
+            @RequestParam(name = "includeInactive", required = false, defaultValue = "false") boolean includeInactive) {
+        List<SensorResponse> sensors = sensorService.getAllSensors(includeInactive);
         return ResponseEntity.ok(sensors);
     }
 

@@ -35,10 +35,18 @@ public class SensorService {
     }
 
     @Transactional(readOnly = true)
-    public List<SensorResponse> getAllActiveSensors() {
-        return sensorRepository.findByActiveTrue().stream()
+    public List<SensorResponse> getAllSensors(boolean includeInactive) {
+        List<Sensor> sensors = includeInactive
+                ? sensorRepository.findAll()
+                : sensorRepository.findByActiveTrue();
+        return sensors.stream()
                 .map(SensorResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SensorResponse> getAllActiveSensors() {
+        return getAllSensors(false);
     }
 
     @Transactional(readOnly = true)
