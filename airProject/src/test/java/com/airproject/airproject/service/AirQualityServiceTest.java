@@ -45,17 +45,15 @@ class AirQualityServiceTest {
     }
 
     @Test
-    void shouldProcessAndSaveMessageWithNombreAndTimestamp() {
-        AirQualityMessage.Dispositivo dispositivo = new AirQualityMessage.Dispositivo(
+    void shouldProcessAndSaveMessage() {
+        AirQualityMessage.Device device = new AirQualityMessage.Device(
                 "ACEA5AC8E720",
-                "Node1",
-                "1.0.2",
-                109,
-                1785274877L
+                "3.2.3",
+                1791835722L
         );
-        AirQualityMessage.Entorno entorno = new AirQualityMessage.Entorno(23.7, 20.16699);
-        AirQualityMessage.Aire aire = new AirQualityMessage.Aire(482.0, 19.29231, 32.15385, 38.58462);
-        AirQualityMessage message = new AirQualityMessage(dispositivo, entorno, aire);
+        AirQualityMessage.Environment environment = new AirQualityMessage.Environment(30.99222, 22.49485);
+        AirQualityMessage.AirData airData = new AirQualityMessage.AirData(687.0, 0.0, 0.0, 1.0);
+        AirQualityMessage message = new AirQualityMessage(device, environment, airData);
 
         when(repository.save(any(AirQualityReading.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -63,34 +61,36 @@ class AirQualityServiceTest {
 
         assertNotNull(result);
         assertEquals("ACEA5AC8E720", result.getDeviceId());
-        assertEquals("Node1", result.getDeviceName());
-        assertEquals("1.0.2", result.getFirmware());
-        assertEquals(109, result.getSequence());
+        assertNull(result.getDeviceName());
+        assertEquals("3.2.3", result.getFirmware());
+        assertNull(result.getSequence());
         assertEquals("calidad_aire/nodo1", result.getTopic());
-        assertEquals(Instant.ofEpochSecond(1785274877L), result.getTime());
-        assertEquals(23.7, result.getTemperature());
-        assertEquals(20.16699, result.getHumidity());
-        assertEquals(482.0, result.getCo2());
+        assertEquals(Instant.ofEpochSecond(1791835722L), result.getTime());
+        assertEquals(30.99222, result.getTemperature());
+        assertEquals(22.49485, result.getHumidity());
+        assertEquals(687.0, result.getCo2());
+        assertEquals(0.0, result.getPm1_0());
+        assertEquals(0.0, result.getPm2_5());
+        assertEquals(1.0, result.getPm10());
 
         ArgumentCaptor<AirQualityReading> captor = ArgumentCaptor.forClass(AirQualityReading.class);
         verify(repository).save(captor.capture());
         AirQualityReading saved = captor.getValue();
-        assertEquals("Node1", saved.getDeviceName());
-        assertEquals(Instant.ofEpochSecond(1785274877L), saved.getTime());
+        assertNull(saved.getDeviceName());
+        assertNull(saved.getSequence());
+        assertEquals(Instant.ofEpochSecond(1791835722L), saved.getTime());
 
-        verify(sensorService).updateSensorStatusFromReading("ACEA5AC8E720", "1.0.2", Instant.ofEpochSecond(1785274877L));
+        verify(sensorService).updateSensorStatusFromReading("ACEA5AC8E720", "3.2.3", Instant.ofEpochSecond(1791835722L));
     }
 
     @Test
     void shouldFallbackToCurrentTimeWhenTimestampIsNull() {
-        AirQualityMessage.Dispositivo dispositivo = new AirQualityMessage.Dispositivo(
+        AirQualityMessage.Device device = new AirQualityMessage.Device(
                 "ACEA5AC8E720",
-                "Node1",
-                "1.0.2",
-                109,
+                "3.2.3",
                 null
         );
-        AirQualityMessage message = new AirQualityMessage(dispositivo, null, null);
+        AirQualityMessage message = new AirQualityMessage(device, null, null);
 
         when(repository.save(any(AirQualityReading.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

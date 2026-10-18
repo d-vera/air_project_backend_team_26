@@ -10,25 +10,29 @@ class AirQualityMessageTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void shouldDeserializeUpdatedPayloadWithNombreAndTimestamp() throws Exception {
+    void shouldDeserializePayloadAndIgnoreExtraFields() throws Exception {
         String json = """
                 {
-                  "dispositivo": {
+                  "device": {
                     "id": "ACEA5AC8E720",
-                    "nombre": "Node1",
-                    "firmware": "1.0.2",
-                    "secuencia": 109,
-                    "Timestamp": 1785274877
+                    "firmware": "3.2.3",
+                    "sequence": 7,
+                    "timestamp": 1791835722
                   },
-                  "entorno": {
-                    "temperatura": 23.7,
-                    "humedad": 20.16699
+                  "stateSensors": {
+                    "scd41": 0,
+                    "pmsa003i": 0
                   },
-                  "aire": {
-                    "co2": 482,
-                    "pm1_0": 19.29231,
-                    "pm2_5": 32.15385,
-                    "pm10": 38.58462
+                  "environment": {
+                    "temperature": 30.99222,
+                    "humidity": 22.49485
+                  },
+                  "airData": {
+                    "co2": 687,
+                    "pm1_0": 0,
+                    "pm2_5": 0,
+                    "pm10": 1,
+                    "p03": 120
                   }
                 }
                 """;
@@ -36,21 +40,60 @@ class AirQualityMessageTest {
         AirQualityMessage message = objectMapper.readValue(json, AirQualityMessage.class);
 
         assertNotNull(message);
-        assertNotNull(message.dispositivo());
-        assertEquals("ACEA5AC8E720", message.dispositivo().id());
-        assertEquals("Node1", message.dispositivo().nombre());
-        assertEquals("1.0.2", message.dispositivo().firmware());
-        assertEquals(109, message.dispositivo().secuencia());
-        assertEquals(1785274877L, message.dispositivo().timestamp());
+        assertNotNull(message.device());
+        assertEquals("ACEA5AC8E720", message.device().id());
+        assertEquals("3.2.3", message.device().firmware());
+        assertEquals(1791835722L, message.device().timestamp());
 
-        assertNotNull(message.entorno());
-        assertEquals(23.7, message.entorno().temperatura());
-        assertEquals(20.16699, message.entorno().humedad());
+        assertNotNull(message.environment());
+        assertEquals(30.99222, message.environment().temperature());
+        assertEquals(22.49485, message.environment().humidity());
 
-        assertNotNull(message.aire());
-        assertEquals(482.0, message.aire().co2());
-        assertEquals(19.29231, message.aire().pm1_0());
-        assertEquals(32.15385, message.aire().pm2_5());
-        assertEquals(38.58462, message.aire().pm10());
+        assertNotNull(message.airData());
+        assertEquals(687.0, message.airData().co2());
+        assertEquals(0.0, message.airData().pm1_0());
+        assertEquals(0.0, message.airData().pm2_5());
+        assertEquals(1.0, message.airData().pm10());
+    }
+
+    @Test
+    void shouldDeserializePayloadWithoutIgnoredFields() throws Exception {
+        String json = """
+                {
+                  "device": {
+                    "id": "ACEA5AC8E720",
+                    "firmware": "3.2.3",
+                    "timestamp": 1791835722
+                  },
+                  "environment": {
+                    "temperature": 30.99222,
+                    "humidity": 22.49485
+                  },
+                  "airData": {
+                    "co2": 687,
+                    "pm1_0": 0,
+                    "pm2_5": 0,
+                    "pm10": 1
+                  }
+                }
+                """;
+
+        AirQualityMessage message = objectMapper.readValue(json, AirQualityMessage.class);
+
+        assertNotNull(message);
+        assertNotNull(message.device());
+        assertEquals("ACEA5AC8E720", message.device().id());
+        assertEquals("3.2.3", message.device().firmware());
+        assertEquals(1791835722L, message.device().timestamp());
+
+        assertNotNull(message.environment());
+        assertEquals(30.99222, message.environment().temperature());
+        assertEquals(22.49485, message.environment().humidity());
+
+        assertNotNull(message.airData());
+        assertEquals(687.0, message.airData().co2());
+        assertEquals(0.0, message.airData().pm1_0());
+        assertEquals(0.0, message.airData().pm2_5());
+        assertEquals(1.0, message.airData().pm10());
     }
 }

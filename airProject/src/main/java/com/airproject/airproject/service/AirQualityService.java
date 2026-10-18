@@ -31,11 +31,11 @@ public class AirQualityService {
 
     @Transactional
     public AirQualityReading processAndSave(AirQualityMessage message, String topic) {
-        String deviceId = message.dispositivo() != null ? message.dispositivo().id() : "unknown";
-        String deviceName = message.dispositivo() != null ? message.dispositivo().nombre() : null;
-        String firmware = message.dispositivo() != null ? message.dispositivo().firmware() : null;
-        Integer sequence = message.dispositivo() != null ? message.dispositivo().secuencia() : null;
-        Long timestamp = message.dispositivo() != null ? message.dispositivo().timestamp() : null;
+        String deviceId = message.device() != null ? message.device().id() : "unknown";
+        String deviceName = null;
+        String firmware = message.device() != null ? message.device().firmware() : null;
+        Integer sequence = null;
+        Long timestamp = message.device() != null ? message.device().timestamp() : null;
 
         Instant readingTime;
         if (timestamp != null && timestamp > 0) {
@@ -44,13 +44,13 @@ public class AirQualityService {
             readingTime = Instant.now();
         }
 
-        Double temperature = message.entorno() != null ? message.entorno().temperatura() : null;
-        Double humidity = message.entorno() != null ? message.entorno().humedad() : null;
+        Double temperature = message.environment() != null ? message.environment().temperature() : null;
+        Double humidity = message.environment() != null ? message.environment().humidity() : null;
 
-        Double co2 = message.aire() != null ? message.aire().co2() : null;
-        Double pm10Small = message.aire() != null ? message.aire().pm1_0() : null;
-        Double pm25 = message.aire() != null ? message.aire().pm2_5() : null;
-        Double pm10 = message.aire() != null ? message.aire().pm10() : null;
+        Double co2 = message.airData() != null ? message.airData().co2() : null;
+        Double pm10Small = message.airData() != null ? message.airData().pm1_0() : null;
+        Double pm25 = message.airData() != null ? message.airData().pm2_5() : null;
+        Double pm10 = message.airData() != null ? message.airData().pm10() : null;
 
         AirQualityReading reading = new AirQualityReading(
                 readingTime,
