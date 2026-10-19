@@ -15,21 +15,38 @@ The system SHALL deserialize incoming MQTT messages from the subscribed topic in
 
 ```json
 {
-  "dispositivo": {
+  "device": {
     "id": "ACEA5AC8E720",
-    "nombre": "Node1",
-    "firmware": "1.0.2",
-    "secuencia": 109,
-    "Timestamp": 1785274877
+    "firmware": "3.2.3",
+    "timestamp": 1791835722
   },
-  "entorno": { "temperatura": 23.7, "humedad": 20.16699 },
-  "aire": { "co2": 482, "pm1_0": 19.29231, "pm2_5": 32.15385, "pm10": 38.58462 }
+  "environment": {
+    "temperature": 30.99222,
+    "humidity": 22.49485
+  },
+  "airData": {
+    "co2": 687,
+    "pm1_0": 0,
+    "pm2_5": 0,
+    "pm10": 1
+  }
 }
 ```
 
-#### Scenario: Valid air quality message received
-- **WHEN** a valid JSON message is published to `calidad_aire/nodo1`
-- **THEN** the system deserializes it into an `AirQualityMessage` DTO with nested `dispositivo` (including `id`, `nombre`, `firmware`, `secuencia`, `Timestamp`), `entorno`, and `aire` objects
+The system SHALL ignore the following fields if present in the payload:
+- `device.sequence` — not consumed by the backend.
+- `stateSensors` — sensor hardware status is not consumed by the backend.
+- `airData.p03` — particle count ≥0.3µm is not consumed by the backend.
+
+Unknown fields at any nesting level SHALL be silently ignored (the system SHALL NOT fail on unknown properties).
+
+#### Scenario: Valid air quality message received with new format
+- **WHEN** a valid JSON message with the new English-language structure is published to `calidad_aire/nodo1`
+- **THEN** the system deserializes it into an `AirQualityMessage` DTO with nested `device` (including `id`, `firmware`, `timestamp`), `environment` (including `temperature`, `humidity`), and `airData` (including `co2`, `pm1_0`, `pm2_5`, `pm10`) objects
+
+#### Scenario: Message with ignored fields received
+- **WHEN** a valid JSON message containing `stateSensors`, `device.sequence`, or `airData.p03` fields is published
+- **THEN** the system deserializes the message successfully, silently ignoring those fields
 
 #### Scenario: Malformed JSON message received
 - **WHEN** a message with invalid JSON is published to the subscribed topic
@@ -37,31 +54,31 @@ The system SHALL deserialize incoming MQTT messages from the subscribed topic in
 
 ### Requirement: System maps DTO to entity and persists to database
 The system SHALL map each successfully deserialized `AirQualityMessage` to an `AirQualityReading` entity and persist it to the database. The entity SHALL include:
-- `time`: payload `dispositivo.Timestamp` converted to `Instant` (or server `Instant.now()` if `Timestamp` is null)
-- `deviceId`: from `dispositivo.id`
-- `deviceName`: from `dispositivo.nombre`
-- `firmware`: from `dispositivo.firmware`
-- `sequence`: from `dispositivo.secuencia`
+- `time`: payload `device.timestamp` converted to `Instant` (or server `Instant.now()` if `timestamp` is null or zero)
+- `deviceId`: from `device.id`
+- `deviceName`: set to `null` (no longer provided by sensor nodes)
+- `firmware`: from `device.firmware`
+- `sequence`: set to `null` (explicitly ignored)
 - `topic`: the MQTT topic the message arrived on
-- `temperature`: from `entorno.temperatura`
-- `humidity`: from `entorno.humedad`
-- `co2`: from `aire.co2`
-- `pm1_0`: from `aire.pm1_0`
-- `pm2_5`: from `aire.pm2_5`
-- `pm10`: from `aire.pm10`
+- `temperature`: from `environment.temperature`
+- `humidity`: from `environment.humidity`
+- `co2`: from `airData.co2`
+- `pm1_0`: from `airData.pm1_0`
+- `pm2_5`: from `airData.pm2_5`
+- `pm10`: from `airData.pm10`
 
-Additionally, upon processing the message, the system SHALL check if a `Sensor` entity exists with `uidSensor` matching `dispositivo.id`. If found, the system SHALL update the sensor's `lastSeen` timestamp to the reading time (or current time) and update `firmwareVersion` if provided. When updating sensor status from a reading, the system SHALL check if the sensor is currently in `MAINTENANCE` mode. If the sensor is in `MAINTENANCE`, the system SHALL update `lastSeen` but SHALL NOT change the `sensorStatus` — it SHALL remain as `MAINTENANCE`. If the sensor is not in `MAINTENANCE`, the system SHALL set `sensorStatus` to `ONLINE`.
+Additionally, upon processing the message, the system SHALL check if a `Sensor` entity exists with `uidSensor` matching `device.id`. If found, the system SHALL update the sensor's `lastSeen` timestamp to the reading time (or current time) and update `firmwareVersion` if provided. When updating sensor status from a reading, the system SHALL check if the sensor is currently in `MAINTENANCE` mode. If the sensor is in `MAINTENANCE`, the system SHALL update `lastSeen` but SHALL NOT change the `sensorStatus` — it SHALL remain as `MAINTENANCE`. If the sensor is not in `MAINTENANCE`, the system SHALL set `sensorStatus` to `ONLINE`.
 
 #### Scenario: Message successfully persisted and sensor status updated
 - **WHEN** a valid air quality message is received and deserialized for a registered sensor with `sensorStatus` of `ONLINE` or `OFFLINE`
-- **THEN** the system persists an `AirQualityReading` entity and updates the corresponding `Sensor`'s `lastSeen` timestamp, `firmwareVersion`, and sets `sensorStatus` to `ONLINE`
+- **THEN** the system persists an `AirQualityReading` entity with `deviceName=null` and `sequence=null`, and updates the corresponding `Sensor`'s `lastSeen` timestamp, `firmwareVersion`, and sets `sensorStatus` to `ONLINE`
 
 #### Scenario: Message persisted for sensor in maintenance
 - **WHEN** a valid air quality message is received for a registered sensor with `sensorStatus = MAINTENANCE`
 - **THEN** the system persists the `AirQualityReading` entity, updates `lastSeen`, but SHALL NOT change the `sensorStatus` (it remains `MAINTENANCE`)
 
 #### Scenario: Message from unregistered sensor
-- **WHEN** a valid air quality message is received for a `dispositivo.id` not present in `sensors`
+- **WHEN** a valid air quality message is received for a `device.id` not present in `sensors`
 - **THEN** the system persists the `AirQualityReading` normally and logs a warning that the sensor is unregistered
 
 ### Requirement: System logs each successfully ingested message
@@ -70,4 +87,3 @@ The system SHALL log a confirmation message at INFO level after each successful 
 #### Scenario: Ingestion logged
 - **WHEN** an air quality reading is successfully saved to the database
 - **THEN** the system logs an INFO message containing the device ID and topic name
-
